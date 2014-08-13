@@ -84,10 +84,16 @@ var empty = function(func) {
 
 function isShort(arg) { return /^-[^-]/.test(arg); }
 function isLong(arg) { return /^--.+/.test(arg); }
-function isArg(arg) { return isShort(arg) || isLong(arg); }
+function isOpt(arg) { return isShort(arg) || isLong(arg); }
+function getOpt(arg) {
+    if(!isOpt(arg)) return null;
+    args.forEach(function(a) {
+    if(a.lopt === 
 var parse = function(args) {
     for(i=0; i<args.length; i++) {
-        if (isShort(
+        var arg = args[i];
+        if (!isOpt(arg)) continue;
+        
 
     }
 }
