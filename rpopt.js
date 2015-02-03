@@ -15,13 +15,14 @@ if (typeof String.prototype.startsWith != 'function') {
 function wrap(str, len, brk, first) {
     len = len || 75;
     brk = brk || '\n';
-    if (first === null) first = true;
+    if (first === undefined) first = true;
 
-    if (!str || str.length < len) return str;
-    var m = /\s\S*$/.exec(str.substring(0, first ? len + 1 : len+2-brk.length));
-    var i = m ? m.index : len;
+    var stop = first ? len + 1 : len + 2 - brk.length;
+    if (!str || str.length < stop) return str;
+    var m = /\s\S*$/.exec(str.slice(0, stop));
+    var i = m ? m.index : stop;
     var j = m ? i + 1 : i;
-    return str.substring(0, i) + brk + wrap(str.substring(j), len, brk, false);
+    return str.slice(0, i) + brk + wrap(str.slice(j), len, brk, false);
 }
 
 var args = [];
@@ -37,13 +38,13 @@ var on = function(scmd, action, desc) {
     var split = cmd.split(/\s/);
     var shopt = split[0];
     var lnopt = split[1] || null;
-    var argv  = /\((.*)\)/.exec(action.toString())[1].split(/,\s*/);
+    var argv  = /\((.*?)\)/.exec(action.toString())[1];
     sortInsert(args, {
         'sopt': shopt,
         'lopt': lnopt,
         'reqd': req,
         'argc': action.length,
-        'argv': ' ' + argv.join(', ').toUpperCase(),
+        'argv': argv === '' ? '' : ' ' + argv.split(/,\s*/).join(', ').toUpperCase(),
         '_argv': null,
         'func': action,
         'desc': desc,
@@ -115,6 +116,10 @@ var parse = function(args) {
         if (!isOpt(arg)) continue;
         var optargs = [];
         var opt = getOpt(arg);
+        if (opt === null) {
+            error('unrecognized option: '+arg+'.');
+            return;
+        }
         if (opt.argc > 0) {
             if (isShort(arg)) {
                 var nospace = /^(-[^-])(.*)/.exec(arg)[2]
